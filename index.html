@@ -12,6 +12,7 @@
       <nav class="flex items-center gap-4">
         <a class="hover:underline" href="#">Listings</a>
         <a class="hover:underline" href="#">Create</a>
+        <a class="rounded-lg bg-amber-500 px-3 py-1.5 font-medium text-gray-900 hover:bg-amber-600" href="#">Register</a>
         <a class="rounded-lg bg-amber-500 px-3 py-1.5 font-medium text-gray-900 hover:bg-amber-600" href="#">Sign in</a>
       </nav>
     </div>
@@ -25,10 +26,7 @@
         Place bid
       </button>
     </section>
-    
-    <div class="p-6 mb-4 bg-red-500 text-white rounded-xl">
-  If this box is red, Tailwind is working 🎉
-</div>
+
   </main>
 
   <footer class="mt-16 border-t border-mushroom-200">
@@ -36,6 +34,28 @@
       © <span id="year"></span> Mushroom Market
     </div>
   </footer>
+
+<body class="bg-background text-foreground">
+  <!-- Primary action -->
+  <button class="bg-brand text-brand-fg hover:bg-brand/90 focus:ring-2 focus:ring-brand/40 px-4 py-2 rounded-lg">
+    Place bid
+  </button>
+
+  <!-- Timer / highlight -->
+  <span class="bg-accent text-accent-fg px-2 py-1 rounded">
+    Ends in 02:13:45
+  </span>
+
+  <!-- Card -->
+  <article class="bg-surface border border-border rounded-xl p-4 shadow-sm">
+    <h3 class="font-semibold">Porcini Basket</h3>
+    <p class="text-warmgray">Current bid: 120 credits</p>
+  </article>
+
+  <!-- Status badges -->
+  <span class="bg-danger text-danger-fg px-2 py-1 rounded">Outbid</span>
+  <span class="bg-neutral text-neutral-fg px-2 py-1 rounded">Reserved</span>
+
 
   <!-- Your JavaScript entry (inside the ./js folder) -->
   <script type="module" src="./js/main.js"></script>
