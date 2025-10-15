@@ -20,5 +20,8 @@
     "url": "https://github.com/gorsol89/Semester-project-2/issues"
   },
   "homepage": "https://github.com/gorsol89/Semester-project-2#readme",
-  "private": "true"
+  "private": "true",
+  "devDependencies": {
+    "vite": "^7.1.10"
+  }
 }
