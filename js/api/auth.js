@@ -1,74 +1,110 @@
-//This is code from the JS2 CA - no editing yet
+// Auth handlers for register + login pages (SP2 - Auction House)
+import { registerUser, loginUser } from './api/api.js';
 
-
-import { fetchAuth, fetchSocial } from './api.js';
-
+// ---------- REGISTER ----------
 const registerForm = document.getElementById('registerForm');
-const loginForm = document.getElementById('loginForm');
-const overlay = document.getElementById('loadingOverlay');
+const registerMsg = document.getElementById('regMsg');
+const registerBtn = document.getElementById('regBtn');
 
 if (registerForm) {
-  registerForm.addEventListener('submit', async e => {
+  registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const { name, email, password, bio, avatar, banner } = e.target.elements;
+    const form = e.currentTarget;
+
+    // Only required fields exist in your form right now
+    const name = form.name?.value.trim();
+    const email = form.email?.value.trim();
+    const password = form.password?.value;
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     try {
-      const user = await fetchAuth('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: name.value.trim(),
-          email: email.value.trim(),
-          password: password.value,
-          bio: bio.value.trim(),
-          avatar: avatar.value 
-            ? { url: avatar.value, alt: `${name.value}'s avatar` }
-            : undefined,
-          banner: banner.value 
-            ? { url: banner.value, alt: `${name.value}'s banner` }
-            : undefined,
-        }),
-      });
-      //console.log("Register response:", user);
-      if (user && (user.name || (user.data && user.data.name))) {
-        localStorage.setItem('username', user.name || user.data?.name);
+      if (registerBtn) registerBtn.disabled = true;
+      if (registerMsg) {
+        registerMsg.textContent = 'Creating account…';
+        registerMsg.className = 'text-sm mt-2 text-gray-600';
+      }
+
+      // 1) Register (no token returned here)
+      await registerUser({ name, email, password });
+
+      // 2) Auto-login to get accessToken
+      const loginRes = await loginUser({ email, password });
+      const user = loginRes?.data || loginRes;
+
+      const accessToken = user?.accessToken;
+      const profileName = user?.name || name;
+
+      if (accessToken) localStorage.setItem('accessToken', accessToken);
+      if (profileName) localStorage.setItem('username', profileName);
+
+      if (registerMsg) {
+        registerMsg.textContent = 'Account created! Redirecting…';
+        registerMsg.className = 'text-sm mt-2 text-green-700';
       }
       window.location.href = 'profile.html';
     } catch (err) {
-      alert('Registrering feilet. Prøv igjen!');
+      const msg = err instanceof Error ? err.message : 'Registration failed';
+      if (registerMsg) {
+        registerMsg.textContent = msg;
+        registerMsg.className = 'text-sm mt-2 text-red-700';
+      }
+    } finally {
+      if (registerBtn) registerBtn.disabled = false;
     }
   });
 }
 
+// ---------- LOGIN ----------
+const loginForm = document.getElementById('loginForm');
+const loginMsg = document.getElementById('loginMsg');
+const loginBtn = document.getElementById('loginBtn');
+
 if (loginForm) {
-  loginForm.addEventListener('submit', async e => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const { email, password } = e.target.elements;
+    const form = e.currentTarget;
+
+    const email = form.email?.value.trim();
+    const password = form.password?.value;
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
     try {
-      const data = await fetchAuth('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: email.value.trim(),
-          password: password.value,
-        }),
-      });
-      // Debug log: what do we get back from the API?
-      //console.log("Login response:", data);
-      //console.log("accessToken from login:", data.accessToken, data?.data?.accessToken);
-      //console.log("name from login:", data.name, data?.data?.name);
+      if (loginBtn) loginBtn.disabled = true;
+      if (loginMsg) {
+        loginMsg.textContent = 'Signing in…';
+        loginMsg.className = 'text-sm mt-2 text-gray-600';
+      }
 
-      // Try both flat and nested return objects:
-      const accessToken = data.accessToken || data?.data?.accessToken;
-      const username    = data.name        || data?.data?.name;
+      const res = await loginUser({ email, password });
+      const user = res?.data || res;
 
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('username', username);
+      const accessToken = user?.accessToken;
+      const profileName = user?.name;
 
-      // Debug: confirm what is in localStorage
-      //console.log("Saved accessToken:", localStorage.getItem('accessToken'));
-      //console.log("Saved username:", localStorage.getItem('username'));
+      if (accessToken) localStorage.setItem('accessToken', accessToken);
+      if (profileName) localStorage.setItem('username', profileName);
 
+      if (loginMsg) {
+        loginMsg.textContent = 'Signed in! Redirecting…';
+        loginMsg.className = 'text-sm mt-2 text-green-700';
+      }
       window.location.href = 'profile.html';
     } catch (err) {
-      alert('Innlogging feilet. Prøv igjen!');
+      const msg = err instanceof Error ? err.message : 'Login failed';
+      if (loginMsg) {
+        loginMsg.textContent = msg;
+        loginMsg.className = 'text-sm mt-2 text-red-700';
+      }
+    } finally {
+      if (loginBtn) loginBtn.disabled = false;
     }
   });
 }

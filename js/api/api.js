@@ -1,65 +1,130 @@
-// This code is from the JS2 CA 
+/**
+ * Noroff API v2 helpers for Semester Project 2 (Auction House).
+ * Requires .env:
+ *  VITE_API_BASE=https://v2.api.noroff.dev
+ *  VITE_NOROFF_API_KEY=your_app_key
+ */
 
-export const API_BASE = import.meta.env.VITE_API_BASE;
-const DEFAULT_API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
+export const API_BASE =
+  (import.meta.env.VITE_API_BASE || 'https://v2.api.noroff.dev').replace(
+    /\/+$/,
+    ''
+  );
 
-function authHeaders() {
-  return { 'Content-Type': 'application/json' };
+/** Get stored API key (localStorage 'apiKey' overrides .env) */
+export function getApiKey() {
+  const fromStorage = localStorage.getItem('apiKey');
+  return fromStorage && fromStorage !== 'undefined' && fromStorage !== ''
+    ? fromStorage
+    : import.meta.env.VITE_NOROFF_API_KEY;
 }
 
-function socialHeaders() {
-  let apiKey = localStorage.getItem('apiKey');
-  if (!apiKey || apiKey === "undefined" || apiKey === "") {
-    apiKey = DEFAULT_API_KEY;
-  }
-  const token  = localStorage.getItem('accessToken') || import.meta.env.VITE_BEARER_TOKEN;
-  // Optionally, log the headers if debugging
-  // console.log("Sending headers: ", {
-  //   'Authorization': `Bearer ${token}`,
-  //   'X-Noroff-API-Key': apiKey
-  // });
+/** Get stored access token from login */
+export function getToken() {
+  return localStorage.getItem('accessToken') || '';
+}
+
+/** Headers for JSON + API key only (Auth endpoints) */
+export function keyHeaders() {
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`,
-    'X-Noroff-API-Key': apiKey,
+    'X-Noroff-API-Key': getApiKey(),
   };
 }
 
-export async function fetchAuth(endpoint, options = {}) {
-  try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        ...authHeaders(),
-        ...(options.headers || {}),
-      },
-    });
-    if (!res.ok) {
-      const { errors } = await res.json();
-      throw new Error(errors ? errors[0] : 'Unknown error');
-    }
-    return await res.json();
-  } catch (err) {
-    throw err;
-  }
+/** Headers for JSON + API key + Bearer token (Auction endpoints) */
+export function authHeaders() {
+  const token = getToken();
+  return {
+    'Content-Type': 'application/json',
+    'X-Noroff-API-Key': getApiKey(),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
-export async function fetchSocial(endpoint, options = {}) {
-  //console.log("fetchSocial called:", endpoint, options);
-  try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        ...socialHeaders(),
-        ...(options.headers || {}),
-      },
-    });
-    if (!res.ok) {
-      const { errors } = await res.json();
-      throw new Error(errors ? errors[0] : 'Unknown error');
-    }
-    return await res.json();
-  } catch (err) {
-    throw err;
+/** Parse API error payload into a readable message */
+function getErrorMessage(res, body) {
+  if (body?.errors?.length) {
+    const first = body.errors[0];
+    return typeof first === 'string' ? first : first?.message || res.statusText;
   }
+  return body?.message || res.statusText;
+}
+
+/**
+ * Fetch wrapper for /auth endpoints (register/login).
+ * @param {string} endpoint - Path beginning with /auth/...
+ * @param {RequestInit} [options]
+ * @returns {Promise<any>}
+ */
+export async function fetchAuth(endpoint, options = {}) {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...keyHeaders(),
+      ...(options.headers || {}),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(getErrorMessage(res, data));
+  }
+  return data;
+}
+
+/**
+ * Fetch wrapper for /auction endpoints (requires token + api key).
+ * @param {string} endpoint - Path beginning with /auction/...
+ * @param {RequestInit} [options]
+ * @returns {Promise<any>}
+ */
+export async function fetchAuction(endpoint, options = {}) {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...authHeaders(),
+      ...(options.headers || {}),
+    },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(getErrorMessage(res, data));
+  }
+  return data;
+}
+
+/**
+ * Register a new user (stud.noroff.no email required).
+ * @param {{name:string,email:string,password:string,bio?:string,avatar?:{url:string,alt?:string},banner?:{url:string,alt?:string}}} payload
+ */
+export function registerUser(payload) {
+  return fetchAuth('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Login and receive accessToken.
+ * @param {{email:string,password:string}} payload
+ * @returns {Promise<any>} -> { data: { accessToken, name, email, ... } }
+ */
+export function loginUser(payload) {
+  return fetchAuth('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Get an Auction profile by name.
+ * @param {string} name
+ * @param {{listings?:boolean,wins?:boolean}} [opts]
+ */
+export function getAuctionProfile(name, opts = {}) {
+  const params = new URLSearchParams();
+  if (opts.listings) params.set('_listings', 'true');
+  if (opts.wins) params.set('_wins', 'true');
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return fetchAuction(`/auction/profiles/${encodeURIComponent(name)}${qs}`);
 }
