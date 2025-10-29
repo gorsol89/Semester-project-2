@@ -112,7 +112,6 @@ export function loginUser(payload) {
 
 /**
  * Create and return an API key for the logged-in user.
- * Stores nothing by itself.
  */
 export async function createApiKey() {
   const res = await fetchAuth('/auth/create-api-key', {
@@ -126,7 +125,6 @@ export async function createApiKey() {
 
 /**
  * Ensure an API key exists (env/localStorage). If missing and token exists, create one.
- * Returns the key or null.
  */
 export async function ensureApiKey() {
   let key = getApiKey();
@@ -149,4 +147,15 @@ export function getAuctionProfile(name, opts = {}) {
   if (opts.wins) params.set('_wins', 'true');
   const qs = params.toString() ? `?${params.toString()}` : '';
   return fetchAuction(`/auction/profiles/${encodeURIComponent(name)}${qs}`);
+}
+
+/**
+ * Update Auction profile (avatar, banner, bio).
+ * body can be: { avatar: { url, alt }, banner: { url, alt }, bio: "..." }
+ */
+export function updateAuctionProfile(name, body) {
+  return fetchAuction(`/auction/profiles/${encodeURIComponent(name)}`, {
+    method: 'PUT',
+    body: JSON.stringify(body),
+  });
 }

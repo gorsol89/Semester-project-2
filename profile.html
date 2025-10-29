@@ -24,22 +24,103 @@
 
     <!-- MAIN -->
     <main class="mx-auto max-w-3xl px-4 py-10">
-      <section class="rounded-2xl border border-mushroom-200 bg-white/90 backdrop-blur p-6 shadow-sm">
-        <h2 class="text-2xl font-semibold text-mushroom-700">Your profile</h2>
-        <p class="text-sm text-gray-600 mt-1">Welcome back to the market 🍄</p>
+      <section
+        class="relative rounded-2xl border border-mushroom-200 bg-white/90 backdrop-blur p-6 shadow-sm overflow-hidden"
+      >
+        <!-- soft mystical forest glow -->
+        <div
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0 opacity-70 mix-blend-multiply"
+          style="
+            background-image:
+              radial-gradient(1200px 400px at 20% 0%, rgba(16,185,129,0.10), transparent 60%),
+              radial-gradient(900px 300px at 85% -10%, rgba(251,191,36,0.12), transparent 55%),
+              radial-gradient(600px 240px at 50% 120%, rgba(244,114,182,0.10), transparent 60%);
+          "
+        ></div>
 
-        <div id="profMsg" aria-live="polite" class="text-sm mt-3 h-5"></div>
+        <h2 class="relative text-2xl font-semibold text-mushroom-700">Your profile</h2>
+        <p class="relative text-sm text-gray-600 mt-1">Welcome back to the market 🍄</p>
 
-        <div class="mt-6 flex items-center gap-4">
-          <img id="profileAvatar" src="/images/mushroom.png" alt="" class="h-16 w-16 rounded-full border border-mushroom-200 object-cover" />
-          <div>
+        <div id="profMsg" aria-live="polite" class="relative text-sm mt-3 h-5"></div>
+
+        <div class="relative mt-6 flex items-center gap-4">
+          <!-- Avatar + settings -->
+          <div class="relative">
+            <div class="rounded-full p-[3px] bg-gradient-to-br from-emerald-300/50 via-amber-200/60 to-rose-200/60 shadow">
+              <div class="rounded-full p-[3px] bg-white">
+                <img
+                  id="profileAvatar"
+                  src="/images/mushroom.png"
+                  alt=""
+                  class="h-16 w-16 rounded-full border border-emerald-200 object-cover shadow-md ring-2 ring-emerald-400/40"
+                />
+              </div>
+            </div>
+
+            <!-- settings trigger (hidden until we confirm it's the owner's profile) -->
+            <button
+              id="openAvatarSettings"
+              type="button"
+              class="mt-2 hidden w-full items-center justify-center gap-2 rounded-full border border-mushroom-200 bg-white/80 px-3 py-1 text-sm hover:bg-amber-50 shadow-sm"
+              aria-expanded="false"
+              aria-controls="avatarSettings"
+            >
+              <!-- inline gear icon -->
+              <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M19.4 13a7.8 7.8 0 0 0 .06-2l1.65-1.23a.75.75 0 0 0 .2-.96l-1.56-2.7a.75.75 0 0 0-.9-.34l-1.95.8a7.9 7.9 0 0 0-1.72-1l-.3-2.1a.75.75 0 0 0-.74-.63h-3.12a.75.75 0 0 0-.74.63l-.3 2.1a7.9 7.9 0 0 0-1.72 1l-1.95-.8a.75.75 0 0 0-.9.34l-1.56 2.7a.75.75 0 0 0 .2.96L4.6 11a7.8 7.8 0 0 0-.06 2l-1.65 1.23a.75.75 0 0 0-.2.96l1.56 2.7c.2.34.6.49.98.35l1.95-.8c.53.4 1.1.74 1.72 1l.3 2.1c.07.37.39.63.74.63h3.12c.35 0 .67-.26.74-.63l.3-2.1c.62-.26 1.19-.6 1.72-1l1.95.8c.38.14.78-.01.98-.35l1.56-2.7a.75.75 0 0 0-.2-.96L19.4 13Z" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              <span>Avatar settings</span>
+            </button>
+
+            <!-- tiny decorative mushroom -->
+            <img
+              src="/images/mushroom.png"
+              alt=""
+              aria-hidden="true"
+              class="absolute -bottom-2 -right-3 h-6 w-6 rotate-[12deg] opacity-80 drop-shadow"
+            />
+          </div>
+
+          <div class="relative">
             <p class="text-lg font-medium">Name: <span id="profileName">—</span></p>
             <p class="text-sm text-gray-600">Email: <span id="profileEmail">—</span></p>
             <p class="text-sm mt-1">Credits: <span id="profileCredits">—</span></p>
           </div>
         </div>
 
-        <div class="mt-6 flex gap-3">
+        <!-- Settings panel (hidden by default) -->
+        <div id="avatarSettings" class="relative mt-4 hidden rounded-xl border border-mushroom-200 bg-white/90 p-4 shadow-sm">
+          <form id="avatarForm" class="space-y-3" novalidate>
+            <label class="block text-sm font-medium">Avatar URL (Unsplash)</label>
+            <input
+              id="avatarUrl"
+              name="avatarUrl"
+              type="url"
+              required
+              class="w-full rounded-lg border border-mushroom-200 p-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300"
+              placeholder="https://images.unsplash.com/photo-..."
+            />
+            <label class="block text-sm font-medium">Alt text (optional)</label>
+            <input
+              id="avatarAlt"
+              name="avatarAlt"
+              class="w-full rounded-lg border border-mushroom-200 p-2 focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300"
+              placeholder="Describe your avatar"
+            />
+            <div id="avatarMsg" aria-live="polite" class="text-sm h-5"></div>
+            <button
+              id="saveAvatarBtn"
+              type="submit"
+              class="rounded-xl bg-amber-500 px-4 py-2 font-medium text-gray-900 hover:bg-amber-600 shadow-sm"
+            >
+              Save avatar
+            </button>
+          </form>
+        </div>
+
+        <div class="relative mt-6 flex gap-3">
           <a href="./create.html" class="rounded-xl bg-amber-500 px-4 py-2 font-medium text-gray-900 hover:bg-amber-600">Create a listing</a>
           <a href="./index.html" class="rounded-xl border px-4 py-2 hover:bg-gray-50">Browse listings</a>
         </div>
