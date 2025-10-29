@@ -1,5 +1,5 @@
 // Auth handlers for register + login pages (SP2 - Auction House)
-import { registerUser, loginUser } from './api/api.js';
+import { registerUser, loginUser, ensureApiKey, setToken } from './api.js';
 
 // ---------- REGISTER ----------
 const registerForm = document.getElementById('registerForm');
@@ -11,7 +11,6 @@ if (registerForm) {
     e.preventDefault();
     const form = e.currentTarget;
 
-    // Only required fields exist in your form right now
     const name = form.name?.value.trim();
     const email = form.email?.value.trim();
     const password = form.password?.value;
@@ -28,18 +27,26 @@ if (registerForm) {
         registerMsg.className = 'text-sm mt-2 text-gray-600';
       }
 
-      // 1) Register (no token returned here)
+      // 1) Register
       await registerUser({ name, email, password });
 
-      // 2) Auto-login to get accessToken
+      // 2) Auto-login
       const loginRes = await loginUser({ email, password });
       const user = loginRes?.data || loginRes;
-
       const accessToken = user?.accessToken;
       const profileName = user?.name || name;
 
-      if (accessToken) localStorage.setItem('accessToken', accessToken);
+      if (accessToken) {
+        setToken(accessToken);
+      }
       if (profileName) localStorage.setItem('username', profileName);
+
+      // 3) Ensure API key exists (create if missing)
+      try {
+        await ensureApiKey();
+      } catch (_) {
+        // ignore (we still let the user in; profile fetch will error if missing)
+      }
 
       if (registerMsg) {
         registerMsg.textContent = 'Account created! Redirecting…';
@@ -89,8 +96,15 @@ if (loginForm) {
       const accessToken = user?.accessToken;
       const profileName = user?.name;
 
-      if (accessToken) localStorage.setItem('accessToken', accessToken);
+      if (accessToken) setToken(accessToken);
       if (profileName) localStorage.setItem('username', profileName);
+
+      // Ensure API key exists for Auction endpoints
+      try {
+        await ensureApiKey();
+      } catch (_) {
+        // ignore
+      }
 
       if (loginMsg) {
         loginMsg.textContent = 'Signed in! Redirecting…';

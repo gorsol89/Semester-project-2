@@ -1,9 +1,9 @@
-﻿import "../styles/tailwind.css";
+﻿import '../src/styles/tailwind.css';
 
-// Update footer year (no optional-chaining assignment)
-const yearEl = document.getElementById("year");
+// Update footer year
+const yearEl = document.getElementById('year');
 if (yearEl) {
   yearEl.textContent = String(new Date().getFullYear());
 }
 
-console.log("Tailwind ready.");
+console.log('Tailwind ready.');

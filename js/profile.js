@@ -17,7 +17,6 @@ function setMsg(text, cls = 'text-gray-600') {
 function requireAuth() {
   const token = localStorage.getItem('accessToken');
   if (!token) {
-    // Not signed in → go to login
     window.location.href = 'login.html';
     return false;
   }
@@ -38,12 +37,12 @@ async function loadProfile() {
     const res = await getAuctionProfile(username);
     const data = res?.data || res;
 
-    // Fill UI
     if (nameEl) nameEl.textContent = data?.name || username;
     if (emailEl) emailEl.textContent = data?.email || '—';
-    if (creditsEl) creditsEl.textContent = typeof data?.credits === 'number' ? data.credits : '—';
+    if (creditsEl) {
+      creditsEl.textContent = typeof data?.credits === 'number' ? data.credits : '—';
+    }
 
-    // Avatar (optional)
     const avatarUrl = data?.avatar?.url;
     if (avatarEl) {
       if (avatarUrl) {
